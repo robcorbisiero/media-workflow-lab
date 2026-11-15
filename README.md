@@ -1,5 +1,7 @@
 # Media Workflow Lab
 
+[![Verify real media workflow](https://github.com/robcorbisiero/media-workflow-lab/actions/workflows/verify.yml/badge.svg)](https://github.com/robcorbisiero/media-workflow-lab/actions/workflows/verify.yml)
+
 A local proof of concept for controlling a **real synthetic audio/video workflow through a REST API**. Python starts an FFmpeg source, sends MPEG-TS over loopback SRT, records an MP4 at a separate FFmpeg receiver, and verifies the recording with FFprobe.
 
 This is an independent learning project developed with AI assistance. It is not a Matrox product integration, professional broadcast experience, a public-cloud deployment, or a production broadcast system. Only generated test patterns and tone are used.
@@ -28,6 +30,8 @@ Requires Python 3.11 or newer and FFmpeg/FFprobe with SRT, libx264, and AAC supp
 2. From this repository, start the lab, replacing the example directory with the extracted **bin** folder:
 
 ```powershell
+git clone https://github.com/robcorbisiero/media-workflow-lab.git
+Set-Location media-workflow-lab
 ./scripts/start.ps1 -FfmpegDirectory 'C:\tools\ffmpeg\bin'
 ```
 

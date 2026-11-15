@@ -9,4 +9,6 @@ Local checks performed November 15, 2026 on Windows with Python 3.15.2 and Gyan'
 
 These are bounded local checks. CI independently runs on Ubuntu/Python 3.11 with FFmpeg installed and explicitly checks that SRT and libx264 exist. Inspect its actual run result rather than assuming the Windows result proves Linux compatibility.
 
+The independent Ubuntu/Python 3.11 run also passed on November 15, 2026: [verified workflow run](https://github.com/robcorbisiero/media-workflow-lab/actions/runs/43764494487). It installed FFmpeg, checked SRT/libx264 availability, and completed the unittest suite successfully.
+
 No Matrox SDK, cloud deployment, external sender, loss/jitter injection, measured end-to-end latency, or long-duration reliability test was performed.
