@@ -1,0 +1,7 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="lab-token" content="__TOKEN__"><title>Media Workflow Lab</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head><body><main>
+<p class="eyebrow">LOCAL MEDIA OPERATIONS · SYNTHETIC SIGNAL</p><h1>Media Workflow Lab</h1><p class="intro">Control a real SRT workflow through a REST API. Generate video and audio, receive a recording, and verify what arrived.</p>
+<section class="flow" aria-label="Media path"><span>Test pattern + tone</span><b>→</b><span>MPEG-TS over SRT</span><b>→</b><span>MP4 receiver</span><b>→</b><span>FFprobe verification</span></section>
+<section><h2>Run a workflow</h2><label for="seconds">Recording duration</label><select id="seconds"><option value="5">5 seconds</option><option value="10" selected>10 seconds</option><option value="15">15 seconds</option></select><button id="start">Start synthetic workflow</button><p id="notice" role="status" aria-live="polite">Ready. One bounded workflow runs at a time.</p></section>
+<section><h2>Workflow history</h2><div id="jobs">No workflows yet.</div></section>
+<footer>Independent learning lab. Loopback only. No Matrox SDK integration, cloud deployment, or professional broadcast experience is implied. SRT is the media path; HTTP is the control path.</footer>
+</main></body></html>
