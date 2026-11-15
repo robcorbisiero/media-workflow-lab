@@ -4,6 +4,8 @@ A local proof of concept for controlling a **real synthetic audio/video workflow
 
 This is an independent learning project developed with AI assistance. It is not a Matrox product integration, professional broadcast experience, a public-cloud deployment, or a production broadcast system. Only generated test patterns and tone are used.
 
+<img src="docs/images/dashboard.png" alt="Local media dashboard showing a completed SRT recording, FFprobe results for H264 and AAC, and video playback" width="850">
+
 ## Media and control paths
 
 ```mermaid
