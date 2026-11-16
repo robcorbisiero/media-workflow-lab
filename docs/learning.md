@@ -25,4 +25,4 @@ Do not describe it as professional live-event support, Matrox ORIGIN integration
 
 ## Next milestones
 
-First demonstrate the current lab yourself. Then consider an OBS interoperability exercise and a second-host SRT test. A cloud milestone should follow an explicit provider choice, account review, budget, cleanup plan, and its own deployment/verification evidence. Nothing in the local lab establishes cloud expertise.
+First demonstrate the current lab yourself. Repeat the [OBS interoperability exercise](obs-interop.md), then consider a second-host SRT test. A cloud milestone should follow an explicit provider choice, account review, budget, cleanup plan, and its own deployment/verification evidence. Nothing in the local lab establishes cloud expertise.

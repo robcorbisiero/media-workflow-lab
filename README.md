@@ -80,9 +80,13 @@ Each job writes receiver/sender logs, a result JSON file, and, on success, recor
 
 [Troubleshooting and acceptance checks](docs/runbook.md) · [Learning walkthrough](docs/learning.md)
 
+## OBS interoperability
+
+An optional Windows exercise now sends the synthetic feed into a real OBS Media Source and verifies OBS's own timed recording. [Run the OBS walkthrough](docs/obs-interop.md). This is separate from the HTTP dashboard and headless CI. [Verification evidence](docs/verification.md).
+
 ## Deliberate limits
 
-- No real cameras, OBS, SDI, NDI, Matrox SDK, or external contribution feed was exercised.
+- OBS input interoperability was exercised with synthetic media on loopback. No real cameras, SDI, NDI, Matrox SDK, or external contribution feed was exercised.
 - SRT runs unencrypted on loopback. Do not expose the HTTP server or SRT endpoint to another network. The local token is not production authentication.
 - The 120000 microsecond SRT latency parameter is a configuration value, not a measured end-to-end latency result.
 - A valid recording proves bounded local media processing, not packet-loss resilience, lip-sync quality, long-running stability, failover, or live-event readiness.
