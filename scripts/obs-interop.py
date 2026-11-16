@@ -12,7 +12,9 @@ import time
 import uuid
 
 
-def run(obs_directory, ffmpeg, ffprobe, seconds=12):
+def run(obs_directory, ffmpeg, ffprobe, seconds=12, recovery=False):
+    if recovery:
+        seconds = 30
     obs_directory = Path(obs_directory).resolve()
     executable = obs_directory / 'bin/64bit/obs64.exe'
     if not executable.is_file():
@@ -79,6 +81,9 @@ ChannelSetup=Stereo
         '-pix_fmt','yuv420p','-g','25','-b:v','800k','-c:a','aac','-b:a','96k',
         '-f','mpegts',f'srt://127.0.0.1:{port}?mode=listener&latency=120000&pkt_size=1316&timeout=20000000']
     sender=obs=None
+    events=[]
+    recording_started=None
+    interrupted=restored=False
     try:
         with (output/'sender.log').open('wb') as log:
             sender=subprocess.Popen(command,stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=log)
@@ -93,8 +98,25 @@ ChannelSetup=Stereo
                 logs=sorted((config/'logs').glob('*.txt'),key=lambda p:p.stat().st_mtime,reverse=True)
                 if logs:
                     text=logs[0].read_text(encoding='utf-8',errors='replace')
-                    if ident in text and 'Recording Stop' in text and recording.is_file():
-                        break
+                    if ident in text:
+                        if recording_started is None and '==== Recording Start' in text:
+                            recording_started=time.monotonic()
+                        if recovery and recording_started is not None:
+                            elapsed=time.monotonic()-recording_started
+                            if elapsed >= 8 and not interrupted:
+                                sender.terminate()
+                                sender.wait(timeout=5)
+                                interrupted=True
+                                events.append(dict(action='sender_stopped',recording_offset=elapsed))
+                                print('Feed interrupted; OBS keeps recording.',flush=True)
+                            if elapsed >= 16 and not restored:
+                                sender=subprocess.Popen(command,stdin=subprocess.DEVNULL,
+                                    stdout=subprocess.DEVNULL,stderr=log)
+                                restored=True
+                                events.append(dict(action='sender_restarted',recording_offset=elapsed))
+                                print('Feed restarted on the same endpoint; checking OBS recovery.',flush=True)
+                        if 'Recording Stop' in text and recording.is_file():
+                            break
                 time.sleep(.5)
             else:
                 raise TimeoutError('OBS did not finalize its timed recording; inspect portable OBS logs')
@@ -114,12 +136,41 @@ ChannelSetup=Stereo
             pcm=subprocess.check_output(common+['-ss','5','-i',str(recording),'-t','1',
                 '-vn','-ac','1','-ar','48000','-f','s16le','pipe:1'],timeout=10)
             samples=array.array('h',pcm)
+            if not samples:
+                raise RuntimeError('No decoded audio samples')
             rms=math.sqrt(sum(x*x for x in samples)/len(samples))/32768
             if not rgb or not samples or max(rgb)-min(rgb)<100 or rms<.005 or rgb==next_rgb:
                 raise RuntimeError('Decoded OBS output was blank, frozen, or silent')
             result=dict(status='passed', recording=str(recording), probe=probe,
                         decoded_audio_rms=rms, rgb_range=max(rgb)-min(rgb), distinct_frames=True,
                         scope='Synthetic FFmpeg sender -> loopback SRT -> OBS Media Source -> OBS recording')
+            if recovery:
+                if not interrupted or not restored:
+                    raise RuntimeError('Recovery fault sequence did not execute')
+                checks={}
+                frames={}
+                for label,offset in [('before',5),('outage',14),('recovered',24),('recovered_next',25)]:
+                    pixels=subprocess.check_output(common+['-ss',str(offset),'-i',str(recording),
+                        '-frames:v','1','-f','rawvideo','-pix_fmt','rgb24','pipe:1'],timeout=10)
+                    audio=subprocess.check_output(common+['-ss',str(offset),'-i',str(recording),
+                        '-t','0.5','-vn','-ac','1','-ar','48000','-f','s16le','pipe:1'],timeout=10)
+                    values=array.array('h',audio)
+                    if not pixels or not values:
+                        raise RuntimeError(f'Missing decoded recovery samples: {label}')
+                    frames[label]=pixels
+                    checks[label]=dict(offset=offset,rgb_range=max(pixels)-min(pixels),
+                        audio_rms=math.sqrt(sum(x*x for x in values)/len(values))/32768)
+                    subprocess.run(common+['-y','-ss',str(offset),'-i',str(recording),
+                        '-frames:v','1','-update','1',str(output/f'{label}.png')],check=True,timeout=10)
+                for label in ('before','recovered','recovered_next'):
+                    if checks[label]['rgb_range']<100 or checks[label]['audio_rms']<.005:
+                        raise RuntimeError(f'Feed not present at recovery checkpoint: {label}')
+                if checks['outage']['audio_rms']>.001 or checks['outage']['rgb_range']>20:
+                    raise RuntimeError('Expected black/silent outage checkpoint not observed')
+                if frames['recovered']==frames['recovered_next']:
+                    raise RuntimeError('Recovered video was frozen')
+                result['recovery']=dict(events=events,checkpoints=checks,
+                    scope='Local sender process interruption and restart; not packet-loss simulation')
             (output/'result.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
             print(json.dumps(dict(status='passed',artifacts=str(output),audio_rms=rms),indent=2))
             return output
@@ -134,9 +185,10 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--obs-directory',required=True)
     parser.add_argument('--seconds',type=int,choices=range(8,31),default=12)
+    parser.add_argument('--recovery',action='store_true',help='30-second stop/restart fault exercise')
     args=parser.parse_args()
     ffmpeg=os.environ.get('FFMPEG_PATH') or shutil.which('ffmpeg')
     ffprobe=os.environ.get('FFPROBE_PATH') or shutil.which('ffprobe')
     if not ffmpeg or not ffprobe:
         parser.error('Set FFMPEG_PATH and FFPROBE_PATH, or add both tools to PATH')
-    run(args.obs_directory,ffmpeg,ffprobe,args.seconds)
+    run(args.obs_directory,ffmpeg,ffprobe,args.seconds,args.recovery)

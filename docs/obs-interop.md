@@ -47,4 +47,6 @@ This check needs a Windows desktop/GPU and OBS; it is intentionally separate fro
 
 ## Interview explanation
 
+After completing the normal feed exercise, run the [controlled interruption and recovery exercise](obs-recovery.md).
+
 After personally repeating and understanding it: “I tested FFmpeg-to-OBS interoperability with synthetic H.264/AAC over local SRT, verified OBS's recording independently, and documented connection roles and failure checks.” This is hands-on lab work, not professional broadcast deployment experience.

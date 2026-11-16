@@ -82,6 +82,8 @@ Each job writes receiver/sender logs, a result JSON file, and, on success, recor
 
 ## OBS interoperability
 
+The [feed interruption and recovery exercise](docs/obs-recovery.md) deliberately stops and restarts the synthetic sender while OBS keeps recording, then checks the recorded media before, during and after the fault.
+
 An optional Windows exercise now sends the synthetic feed into a real OBS Media Source and verifies OBS's own timed recording. [Run the OBS walkthrough](docs/obs-interop.md). This is separate from the HTTP dashboard and headless CI. [Verification evidence](docs/verification.md).
 
 ## Deliberate limits
